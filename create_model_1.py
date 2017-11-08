@@ -43,7 +43,8 @@ y = tf.nn.softmax(tf.matmul(x, W) + b)
 y_ = tf.placeholder(tf.float32, [None, 10])
 cross_entropy = -tf.reduce_sum(y_*tf.log(y))
 train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
-
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 init_op = tf.initialize_all_variables()
 saver = tf.train.Saver()
 
@@ -57,24 +58,31 @@ https://www.tensorflow.org/versions/master/how_tos/variables/index.html
 """
 with tf.Session() as sess:
     sess.run(init_op)
-    for i in range(10000):
-        if i%100 == 0:
-            print"step %d"%i
+    for i in range(20000):
         batch_xs, batch_ys = mnist.train.next_batch(100)
-        sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+        if i%100 == 0:
+            train_accuracy = accuracy.eval(feed_dict={
+                #x:batch[0], y_: batch[1], keep_prob: 1.0})
+                x:batch_xs, y_: batch_ys})
+            print("step %d, training accuracy %g"%(i, train_accuracy))
+        
+        train_step.run(feed_dict={x: batch_xs, y_: batch_ys})
+    print("test accuracy %g"%accuracy.eval(feed_dict={
+        #x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+        x: mnist.test.images, y_: mnist.test.labels}))
 #         if i==9999:
 #             W_val,b_val=sess.run([W,b])
 #             print W_val,b_val
 # for var in tf.trainable_variables():
 #     print var
-    b_val=b.eval()
+    #b_val=b.eval()
     #W_val=W.eval()
     #print W_val
-    print b_val
-    print b_val.shape
+    #print b_val
+    #print b_val.shape
     #save_path = saver.save(sess, "my_net/model_1/model.ckpt")
     #np.savetxt('my_net/model_1/photo_data/W.txt',W_val)
     #np.savetxt('my_net/model_1/photo_data/b.txt',b_val)
-    np.savetxt('my_net/model_1/B.txt',b_val)
+    #np.savetxt('my_net/model_1/B.txt',b_val)
     #print ("Model saved in file: ", save_path)
 
