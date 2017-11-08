@@ -27,9 +27,11 @@ http://niektemme.com/ @@to do
 #import modules
 import sys
 import tensorflow as tf
-from PIL import Image, ImageFilter
+from tensorflow.examples.tutorials.mnist import input_data
+#from PIL import Image, ImageFilter
 
-def predictint(imvalue):
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+def predictint():
     """
     This function returns the predicted integer.
     The imput is the pixel values from the imageprepare() function.
@@ -73,13 +75,14 @@ def predictint(imvalue):
     h_pool2_flat = tf.reshape(h_pool2, [-1, 7*7*64])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
     
-    keep_prob = tf.placeholder(tf.float32)
-    h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+    #keep_prob = tf.placeholder(tf.float32)
+
+    #h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
     
     W_fc2 = weight_variable([1024, 10])
     b_fc2 = bias_variable([10])
     
-    y_conv=tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
+    y_conv=tf.nn.softmax(tf.matmul(h_fc1, W_fc2) + b_fc2)
     
     init_op = tf.global_variables_initializer()
     saver = tf.train.Saver()
@@ -94,13 +97,19 @@ def predictint(imvalue):
     """
     with tf.Session() as sess:
         sess.run(init_op)
-        saver.restore(sess, "my_net/model_2/model2.ckpt")
+        saver.restore(sess, "my_net/model_3/model3.ckpt")
+        batch_xs, batch_ys = mnist.test.next_batch(10)
+        prediction = tf.argmax(y_conv, 1)
+        y_ = tf.argmax(batch_ys, 1)
+        result, real_y, y_value, b_value = sess.run([prediction, y_, y_conv, b], feed_dict={x: batch_xs})
         #print ("Model restored.")
        
-        prediction=tf.argmax(y_conv,1)
-        return prediction.eval(feed_dict={x: [imvalue],keep_prob: 1.0}, session=sess)
+        #prediction=tf.argmax(y_conv,1)
+        #return prediction.eval(feed_dict={x: [imvalue],keep_prob: 1.0}, session=sess)
+        print result,real_y
+predictint()
 
-
+'''
 def imageprepare(argv):
     """
     This function returns the pixel values.
@@ -160,3 +169,4 @@ def main(argv):
 if __name__ == "__main__":
     argv = "test_num/7_0.png"
     main(argv)
+'''
